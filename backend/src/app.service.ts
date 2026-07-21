@@ -1,11 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { clients as initialClients, projects as initialProjects, quotations as initialQuotations, type Client, type Project, type ProjectItem, type Quotation, type QuotationItem, type QuoteStatus, type ProjectStatus } from './mock-data';
+import { DatabaseService } from './database.service';
 
 @Injectable()
-export class AppService {
-  private clients: Client[] = [...initialClients];
-  private quotations: Quotation[] = [...initialQuotations];
-  private projects: Project[] = [...initialProjects];
+export class AppService implements OnModuleInit {
+  private clients: Client[] = this.clone(initialClients);
+  private quotations: Quotation[] = this.clone(initialQuotations);
+  private projects: Project[] = this.clone(initialProjects);
+
+  constructor(private readonly databaseService: DatabaseService) {}
+
+  private clone<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T;
+  }
+
+  async onModuleInit() {
+    await this.databaseService.initialize();
+
+    if (!this.databaseService.isEnabled()) {
+      return;
+    }
+
+    const persistedState = await this.databaseService.loadState();
+
+    if (persistedState) {
+      this.clients = this.clone(persistedState.clients);
+      this.quotations = this.clone(persistedState.quotations);
+      this.projects = this.clone(persistedState.projects);
+      return;
+    }
+
+    await this.persistState();
+  }
+
+  private async persistState() {
+    await this.databaseService.saveState({
+      clients: this.clients,
+      quotations: this.quotations,
+      projects: this.projects,
+    });
+  }
 
   getDashboardSummary() {
     return {
@@ -53,16 +87,17 @@ export class AppService {
     );
   }
 
-  createClient(input: Omit<Client, 'id'>) {
+  async createClient(input: Omit<Client, 'id'>) {
     const client: Client = {
       id: `c${Date.now()}`,
       ...input,
     };
     this.clients.push(client);
+    await this.persistState();
     return client;
   }
 
-  updateClient(id: string, input: Partial<Client>) {
+  async updateClient(id: string, input: Partial<Client>) {
     const client = this.clients.find((item) => item.id === id);
     if (!client) {
       throw new Error('Cliente no encontrado');
@@ -70,10 +105,11 @@ export class AppService {
 
     const updated = { ...client, ...input };
     this.clients.splice(this.clients.indexOf(client), 1, updated);
+    await this.persistState();
     return updated;
   }
 
-  updateProjectItem(projectId: string, itemId: string, input: Partial<ProjectItem> & { trackingNote?: string }) {
+  async updateProjectItem(projectId: string, itemId: string, input: Partial<ProjectItem> & { trackingNote?: string }) {
     const project = this.projects.find((item) => item.id === projectId);
     if (!project) {
       throw new Error('Proyecto no encontrado');
@@ -128,10 +164,11 @@ export class AppService {
       project.status = 'Finalizado';
     }
 
+    await this.persistState();
     return project;
   }
 
-  updateProjectStatus(projectId: string, status: ProjectStatus) {
+  async updateProjectStatus(projectId: string, status: ProjectStatus) {
     const project = this.projects.find((item) => item.id === projectId);
     if (!project) {
       throw new Error('Proyecto no encontrado');
@@ -158,10 +195,11 @@ export class AppService {
       project.pendingActivities = project.items.filter((item) => item.status === 'Pendiente' || item.status === 'En curso').length;
     }
 
+    await this.persistState();
     return project;
   }
 
-  createQuotation(input: {
+  async createQuotation(input: {
     clientId?: string;
     client?: string;
     title: string;
@@ -190,10 +228,11 @@ export class AppService {
       items,
     };
     this.quotations.push(quotation);
+    await this.persistState();
     return quotation;
   }
 
-  updateQuotation(id: string, input: Partial<Quotation>) {
+  async updateQuotation(id: string, input: Partial<Quotation>) {
     const quotation = this.quotations.find((item) => item.id === id);
     if (!quotation) {
       throw new Error('Cotización no encontrada');
@@ -211,10 +250,11 @@ export class AppService {
       total: input.total ?? total,
     };
     this.quotations.splice(this.quotations.indexOf(quotation), 1, updated);
+    await this.persistState();
     return updated;
   }
 
-  convertQuotation(id: string) {
+  async convertQuotation(id: string) {
     const quotation = this.quotations.find((item) => item.id === id);
     if (!quotation) {
       return { ok: false, message: 'Cotización no encontrada' };
@@ -251,6 +291,8 @@ export class AppService {
     };
 
     this.projects.push(project);
+
+    await this.persistState();
 
     return {
       ok: true,

@@ -24,13 +24,13 @@ export class AppController {
   }
 
   @Post('clients')
-  createClient(@Body() body: any) {
-    return this.appService.createClient(body);
+  async createClient(@Body() body: any) {
+    return await this.appService.createClient(body);
   }
 
   @Put('clients/:id')
-  updateClient(@Param('id') id: string, @Body() body: any) {
-    return this.appService.updateClient(id, body);
+  async updateClient(@Param('id') id: string, @Body() body: any) {
+    return await this.appService.updateClient(id, body);
   }
 
   @Get('quotations')
@@ -39,13 +39,13 @@ export class AppController {
   }
 
   @Post('quotations')
-  createQuotation(@Body() body: any) {
-    return this.appService.createQuotation(body);
+  async createQuotation(@Body() body: any) {
+    return await this.appService.createQuotation(body);
   }
 
   @Put('quotations/:id')
-  updateQuotation(@Param('id') id: string, @Body() body: any) {
-    return this.appService.updateQuotation(id, body);
+  async updateQuotation(@Param('id') id: string, @Body() body: any) {
+    return await this.appService.updateQuotation(id, body);
   }
 
   @Get('projects')
@@ -54,13 +54,13 @@ export class AppController {
   }
 
   @Put('projects/:id')
-  updateProjectStatus(@Param('id') id: string, @Body() body: any) {
-    return this.appService.updateProjectStatus(id, body.status);
+  async updateProjectStatus(@Param('id') id: string, @Body() body: any) {
+    return await this.appService.updateProjectStatus(id, body.status);
   }
 
   @Put('projects/:projectId/items/:itemId')
-  updateProjectItem(@Param('projectId') projectId: string, @Param('itemId') itemId: string, @Body() body: any) {
-    return this.appService.updateProjectItem(projectId, itemId, body);
+  async updateProjectItem(@Param('projectId') projectId: string, @Param('itemId') itemId: string, @Body() body: any) {
+    return await this.appService.updateProjectItem(projectId, itemId, body);
   }
 
   @Get('billing')
@@ -69,7 +69,7 @@ export class AppController {
   }
 
   @Post('quotations/:id/convert')
-  convertQuotation(@Param('id') id: string) {
-    return this.appService.convertQuotation(id);
+  async convertQuotation(@Param('id') id: string) {
+    return await this.appService.convertQuotation(id);
   }
 }
