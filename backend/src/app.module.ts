@@ -9,7 +9,7 @@ import { DatabaseService } from './database.service';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'frontend', 'dist'),
-      exclude: ['/api*'],
+      exclude: ['/api/(.*)'],
     }),
   ],
   controllers: [AppController],
