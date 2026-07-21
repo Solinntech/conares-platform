@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: conares-platform
+    env: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build
+    startCommand: npm --prefix backend run start:prod
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: NODE_VERSION
+        value: 20

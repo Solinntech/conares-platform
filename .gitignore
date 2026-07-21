@@ -1,0 +1,20 @@
+# dependencies
+**/node_modules/
+
+# build outputs
+frontend/dist/
+backend/dist/
+coverage/
+
+# local env and logs
+.env
+.env.*
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# local runtime helpers
+.platform.pid
