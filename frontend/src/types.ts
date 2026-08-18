@@ -23,6 +23,13 @@ export interface Quotation {
   client: string;
   title: string;
   date: string;
+  vessel?: string;
+  maintenanceLocation?: string;
+  materials?: string;
+  tools?: string;
+  sparePartsQuality?: string;
+  requiredDocuments?: string;
+  workerCount?: number;
   validity: string;
   responsible: string;
   status: string;

@@ -53,7 +53,6 @@ export const downloadQuotationPdf = async (quotation: Quotation) => {
   const labelColor = 92;
   const accentColor = 162;
   const softFill = 248;
-  const tableTop = 220;
 
   doc.setFontSize(20);
   doc.setTextColor(140, 24, 24);
@@ -65,18 +64,38 @@ export const downloadQuotationPdf = async (quotation: Quotation) => {
 
   doc.setDrawColor(accentColor);
   doc.setFillColor(softFill, softFill, softFill);
-  doc.roundedRect(marginLeft, 66, boxWidth - 190, 72, 6, 6, 'FD');
-
   const infoLines = [
     `Número: ${safeQuotation.id}`,
     `Cliente: ${safeQuotation.client}`,
     `Responsable: ${safeQuotation.responsible}`,
     `Vigencia: ${safeQuotation.validity}`,
+    `Embarcación: ${safeQuotation.vessel || 'No especificada'}`,
+    `Ubicación del MTTO: ${safeQuotation.maintenanceLocation || 'No especificada'}`,
+    `Nro. de trabajadores: ${safeQuotation.workerCount || 0}`,
   ];
+  doc.roundedRect(marginLeft, 66, boxWidth - 190, 96, 6, 6, 'FD');
 
   doc.setFontSize(11);
   doc.setTextColor(30, 30, 30);
   doc.text(infoLines, marginLeft + 14, 86, { maxWidth: boxWidth - 220, lineHeightFactor: 1.25 });
+
+  const requirements = [
+    `Materiales: ${safeQuotation.materials || 'No especificados'}`,
+    `Herramientas: ${safeQuotation.tools || 'No especificadas'}`,
+    `Calidad de repuestos/materiales/consumibles: ${safeQuotation.sparePartsQuality || 'No especificada'}`,
+    `Documentos requeridos: ${safeQuotation.requiredDocuments || 'Ninguno'}`,
+  ].join('\n');
+  const requirementsLines = doc.splitTextToSize(requirements, boxWidth - 24);
+  const requirementsLabelY = 178;
+  doc.setFontSize(10);
+  doc.setTextColor(labelColor);
+  doc.text('Recursos y requisitos', marginLeft, requirementsLabelY);
+  doc.setDrawColor(accentColor);
+  doc.roundedRect(marginLeft, requirementsLabelY + 8, boxWidth, Math.max(54, requirementsLines.length * 12 + 20), 6, 6, 'S');
+  doc.setFontSize(10);
+  doc.setTextColor(30, 30, 30);
+  doc.text(requirementsLines, marginLeft + 12, requirementsLabelY + 28, { maxWidth: boxWidth - 24, lineHeightFactor: 1.2 });
+  const tableTop = 258;
 
   doc.setFontSize(10);
   doc.setTextColor(labelColor);

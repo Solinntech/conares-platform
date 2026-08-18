@@ -77,6 +77,13 @@ const emptyQuotationForm = {
   client: '',
   title: '',
   validity: '',
+  vessel: '',
+  maintenanceLocation: '',
+  materials: '',
+  tools: '',
+  sparePartsQuality: '',
+  requiredDocuments: '',
+  workerCount: '',
   responsible: '',
   observations: '',
   status: 'Borrador',
@@ -621,6 +628,13 @@ function App() {
       clientId: quotationForm.clientId || undefined,
       client: selectedClientOption?.name || quotationForm.client,
       title: quotationForm.title,
+      vessel: quotationForm.vessel,
+      maintenanceLocation: quotationForm.maintenanceLocation,
+      materials: quotationForm.materials,
+      tools: quotationForm.tools,
+      sparePartsQuality: quotationForm.sparePartsQuality,
+      requiredDocuments: quotationForm.requiredDocuments,
+      workerCount: Number(quotationForm.workerCount) || 0,
       validity: quotationForm.validity,
       responsible: quotationForm.responsible,
       observations: [
@@ -663,6 +677,13 @@ function App() {
       clientId: quotation.clientId || '',
       client: quotation.client,
       title: quotation.title,
+      vessel: quotation.vessel || '',
+      maintenanceLocation: quotation.maintenanceLocation || '',
+      materials: quotation.materials || '',
+      tools: quotation.tools || '',
+      sparePartsQuality: quotation.sparePartsQuality || '',
+      requiredDocuments: quotation.requiredDocuments || '',
+      workerCount: quotation.workerCount ? String(quotation.workerCount) : '',
       validity: quotation.validity,
       responsible: quotation.responsible,
       observations: quotation.observations,
@@ -1235,6 +1256,18 @@ function App() {
                           <label>Vigencia</label>
                           <input type="date" value={quotationForm.validity} onChange={(event) => setQuotationForm({ ...quotationForm, validity: event.target.value })} required />
                         </div>
+                        <div className="form-row">
+                          <label>Embarcación</label>
+                          <input value={quotationForm.vessel} onChange={(event) => setQuotationForm({ ...quotationForm, vessel: event.target.value })} placeholder="Nombre o identificación de la embarcación" />
+                        </div>
+                        <div className="form-row">
+                          <label>Ubicación del MTTO</label>
+                          <input value={quotationForm.maintenanceLocation} onChange={(event) => setQuotationForm({ ...quotationForm, maintenanceLocation: event.target.value })} placeholder="Lugar donde se realizará el mantenimiento" />
+                        </div>
+                        <div className="form-row">
+                          <label>Nro. de trabajadores</label>
+                          <input type="number" min="0" value={quotationForm.workerCount} onChange={(event) => setQuotationForm({ ...quotationForm, workerCount: event.target.value })} />
+                        </div>
                       </div>
 
                       <div className="surface-card full">
@@ -1318,6 +1351,26 @@ function App() {
                               ))}
                             </tbody>
                           </table>
+                        </div>
+                      </div>
+
+                      <div className="surface-card">
+                        <h4>Recursos y requisitos</h4>
+                        <div className="form-row">
+                          <label>Materiales</label>
+                          <textarea value={quotationForm.materials} onChange={(event) => setQuotationForm({ ...quotationForm, materials: event.target.value })} placeholder="Materiales incluidos o suministrados por el cliente" />
+                        </div>
+                        <div className="form-row">
+                          <label>Herramientas</label>
+                          <textarea value={quotationForm.tools} onChange={(event) => setQuotationForm({ ...quotationForm, tools: event.target.value })} placeholder="Herramientas y equipos requeridos" />
+                        </div>
+                        <div className="form-row">
+                          <label>Calidad de repuestos, materiales y consumibles</label>
+                          <textarea value={quotationForm.sparePartsQuality} onChange={(event) => setQuotationForm({ ...quotationForm, sparePartsQuality: event.target.value })} placeholder="Especificaciones o estándares de calidad" />
+                        </div>
+                        <div className="form-row">
+                          <label>Documentos requeridos</label>
+                          <textarea value={quotationForm.requiredDocuments} onChange={(event) => setQuotationForm({ ...quotationForm, requiredDocuments: event.target.value })} placeholder="Permisos, certificados, planos u otros documentos" />
                         </div>
                       </div>
 
