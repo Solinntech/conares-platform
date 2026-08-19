@@ -69,7 +69,7 @@ export class AppController {
   }
 
   @Post('quotations/:id/convert')
-  async convertQuotation(@Param('id') id: string) {
-    return await this.appService.convertQuotation(id);
+  async convertQuotation(@Param('id') id: string, @Body() body: { projectId?: string }) {
+    return await this.appService.convertQuotation(id, body?.projectId);
   }
 }

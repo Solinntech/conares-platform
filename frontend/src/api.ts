@@ -20,4 +20,4 @@ export const updateProjectStatus = (id: string, status: Project['status']) => ap
 export const updateProjectItem = (projectId: string, itemId: string, payload: Partial<ProjectItem> & { trackingNote?: string }) =>
   api.put(`/projects/${projectId}/items/${itemId}`, payload).then((res) => res.data);
 export const getBilling = () => api.get('/billing').then((res) => res.data);
-export const convertQuotation = (id: string) => api.post(`/quotations/${id}/convert`).then((res) => res.data);
+export const convertQuotation = (id: string, projectId?: string) => api.post(`/quotations/${id}/convert`, { projectId }).then((res) => res.data);

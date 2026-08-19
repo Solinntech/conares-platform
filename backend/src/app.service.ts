@@ -254,15 +254,56 @@ export class AppService implements OnModuleInit {
     return updated;
   }
 
-  async convertQuotation(id: string) {
+  async convertQuotation(id: string, projectId?: string) {
     const quotation = this.quotations.find((item) => item.id === id);
     if (!quotation) {
       return { ok: false, message: 'Cotización no encontrada' };
     }
 
+    const existingProject = projectId ? this.projects.find((item) => item.id === projectId) : undefined;
+    if (projectId && !existingProject) {
+      return { ok: false, message: 'Proyecto seleccionado no encontrado' };
+    }
+
+    if (existingProject && existingProject.client !== quotation.client) {
+      return { ok: false, message: 'La cotización y el proyecto deben pertenecer al mismo cliente' };
+    }
+
     const updatedQuotation = { ...quotation, status: 'Convertida en Proyecto' as QuoteStatus };
     const index = this.quotations.findIndex((item) => item.id === id);
     this.quotations.splice(index, 1, updatedQuotation);
+
+    const quotationItems = quotation.items.map((item, itemIndex) => ({
+      id: `pi-${Date.now()}-${itemIndex + 1}`,
+      concept: item.concept,
+      responsible: quotation.responsible,
+      unitValue: item.unitValue,
+      quantity: item.quantity,
+      total: item.total,
+      startDate: new Date().toISOString().slice(0, 10),
+      endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      progress: 0,
+      status: 'Pendiente' as ProjectItem['status'],
+      history: ['Ítem creado desde cotización convertida'],
+    }));
+
+    if (existingProject) {
+      existingProject.items = [...existingProject.items, ...quotationItems];
+      existingProject.pendingActivities = existingProject.items.filter((item) => item.status === 'Pendiente' || item.status === 'En curso').length;
+      existingProject.progress = Math.round(existingProject.items.reduce((sum, item) => sum + item.progress, 0) / existingProject.items.length);
+      if (existingProject.status === 'Finalizado') {
+        existingProject.status = 'En curso';
+      }
+
+      await this.persistState();
+
+      return {
+        ok: true,
+        message: `Cotización asociada al proyecto ${existingProject.code} como nueva actividad`,
+        project: existingProject,
+        existingProject: true,
+      };
+    }
 
     const project: Project = {
       id: `p${this.projects.length + 1}`,
@@ -275,19 +316,7 @@ export class AppService implements OnModuleInit {
       status: 'Pendiente',
       progress: 0,
       pendingActivities: quotation.items.length,
-      items: quotation.items.map((item, index) => ({
-        id: `pi-${Date.now()}-${index + 1}`,
-        concept: item.concept,
-        responsible: quotation.responsible,
-        unitValue: item.unitValue,
-        quantity: item.quantity,
-        total: item.total,
-        startDate: new Date().toISOString().slice(0, 10),
-        endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-        progress: 0,
-        status: 'Pendiente',
-        history: ['Ítem creado desde cotización convertida'],
-      })),
+      items: quotationItems,
     };
 
     this.projects.push(project);
@@ -298,6 +327,7 @@ export class AppService implements OnModuleInit {
       ok: true,
       message: 'Cotización convertida a proyecto',
       project,
+      existingProject: false,
     };
   }
 }

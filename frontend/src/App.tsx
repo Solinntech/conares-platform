@@ -214,6 +214,7 @@ function App() {
   const [quotationClientResponsible, setQuotationClientResponsible] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [templates, setTemplates] = useState<TermsTemplate[]>([]);
+  const [quotationProjectTargets, setQuotationProjectTargets] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const stored = localStorage.getItem('conares-terms-templates');
@@ -415,14 +416,18 @@ function App() {
 
   const handleConvert = async (id: string) => {
     try {
-      const response = await convertQuotation(id);
+      const projectId = quotationProjectTargets[id] || undefined;
+      const response = await convertQuotation(id, projectId);
       setFeedback(response.message || 'Cotización convertida a proyecto');
       if (response.project) {
-        setProjects((prev) => [response.project, ...prev]);
+        setProjects((prev) => response.existingProject
+          ? prev.map((project) => (project.id === response.project.id ? response.project : project))
+          : [response.project, ...prev]);
       }
       setQuotations((prev) => prev.map((quotation) => (quotation.id === id ? { ...quotation, status: 'Convertida en Proyecto' } : quotation)));
       const billingList = await getBilling();
       setBillingItems(billingList);
+      setQuotationProjectTargets((prev) => ({ ...prev, [id]: '' }));
     } catch {
       setFeedback('No fue posible convertir la cotización');
     }
@@ -1463,7 +1468,21 @@ function App() {
                                   <button type="button" className="btn-primary" onClick={() => handleApprove(quotation.id)}>Aprobar</button>
                                 ) : null}
                                 {quotation.status === 'Aprobada' ? (
-                                  <button type="button" className="btn-primary" onClick={() => handleConvert(quotation.id)}>Convertir</button>
+                                  <>
+                                    <select
+                                      aria-label={`Proyecto destino para ${quotation.title}`}
+                                      value={quotationProjectTargets[quotation.id] ?? ''}
+                                      onChange={(event) => setQuotationProjectTargets((prev) => ({ ...prev, [quotation.id]: event.target.value }))}
+                                    >
+                                      <option value="">Nuevo proyecto</option>
+                                      {projects
+                                        .filter((project) => project.client === quotation.client)
+                                        .map((project) => <option key={project.id} value={project.id}>{project.code} - {project.name}</option>)}
+                                    </select>
+                                    <button type="button" className="btn-primary" onClick={() => handleConvert(quotation.id)}>
+                                      {quotationProjectTargets[quotation.id] ? 'Asociar actividad' : 'Crear proyecto'}
+                                    </button>
+                                  </>
                                 ) : null}
                               </td>
                             </tr>
